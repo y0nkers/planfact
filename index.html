@@ -13,11 +13,12 @@
 </head>
 
 <body>
+    <!-- CREATE ARTICLE MODAL -->
     <div class="modal" id="createArticleModal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Учётные статьи</h5>
+                    <h5 class="modal-title">Создание учётной статьи</h5>
                     <button type="button" class="close"
                         onclick="getElementById('createArticleModal').style.display = 'none';">
                         <span aria-hidden="true">&times;</span>
@@ -25,22 +26,22 @@
                 </div>
                 <div class="modal-body">
                     <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-secondary" id="createArticle4432214" onclick="reloadSelect(4432214);">Доходы</button>
-                        <button type="button" class="btn btn-secondary" id="createArticle4432221" onclick="reloadSelect(4432221);">Расходы</button>
-                        <button type="button" class="btn btn-secondary" id="createArticle4432174" onclick="reloadSelect(4432174);">Активы</button>
-                        <button type="button" class="btn btn-secondary" id="createArticle4432197" onclick="reloadSelect(4432197);">Обязательства</button>
-                        <button type="button" class="btn btn-secondary" id="createArticle4432209" onclick="reloadSelect(4432209);">Капитал</button>
+                        <button type="button" class="btn btn-secondary" id="createArticle4432214" onclick="reloadCreateSelect(4432214);">Доходы</button>
+                        <button type="button" class="btn btn-secondary" id="createArticle4432221" onclick="reloadCreateSelect(4432221);">Расходы</button>
+                        <button type="button" class="btn btn-secondary" id="createArticle4432174" onclick="reloadCreateSelect(4432174);">Активы</button>
+                        <button type="button" class="btn btn-secondary" id="createArticle4432197" onclick="reloadCreateSelect(4432197);">Обязательства</button>
+                        <button type="button" class="btn btn-secondary" id="createArticle4432209" onclick="reloadCreateSelect(4432209);">Капитал</button>
                     </div>
                     <form>
                         <div class="form-group">
                             <label for="articleTitle" class="col-form-label">Название</label>
-                            <input type="text" class="form-control" id="articleTitle"
+                            <input type="text" class="form-control" id="selectArticleTitle_CREATE"
                                 placeholder="Введите название статьи...">
                         </div>
                         <div class="form-group">
                             <label for="articleCategory" class="col-form-label">Относится к</label>
-                            <select class="form-select" id="selectArticleCategory">
-                                <option id="option0">Не выбрано</option>
+                            <select class="form-select" id="selectArticleCategory_CREATE">
+                                <option id="createOption0">Не выбрано</option>
                             </select>
                         </div>
                     </form>
@@ -48,7 +49,49 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger"
                         onclick="getElementById('createArticleModal').style.display = 'none';" class="cancelbtn">Отменить</button>
-                    <button type="button" class="btn btn-success">Создать</button>
+                    <button type="button" class="btn btn-success" onclick="createArticle();">Создать</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT ARTICLE MODAL -->
+    <div class="modal" id="editArticleModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Редактирование учётной статьи</h5>
+                    <button type="button" class="close"
+                        onclick="getElementById('editArticleModal').style.display = 'none';">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-secondary" id="editArticle4432214" onclick="reloadEditSelect(4432214);">Доходы</button>
+                        <button type="button" class="btn btn-secondary" id="editArticle4432221" onclick="reloadEditSelect(4432221);">Расходы</button>
+                        <button type="button" class="btn btn-secondary" id="editArticle4432174" onclick="reloadEditSelect(4432174);">Активы</button>
+                        <button type="button" class="btn btn-secondary" id="editArticle4432197" onclick="reloadEditSelect(4432197);">Обязательства</button>
+                        <button type="button" class="btn btn-secondary" id="editArticle4432209" onclick="reloadEditSelect(4432209);">Капитал</button>
+                    </div>
+                    <form>
+                        <div class="form-group">
+                            <label for="articleTitle" class="col-form-label">Название</label>
+                            <input type="text" class="form-control" id="selectArticleTitle_EDIT"
+                                placeholder="Введите название статьи...">
+                        </div>
+                        <div class="form-group">
+                            <label for="articleCategory" class="col-form-label">Относится к</label>
+                            <select class="form-select" id="selectArticleCategory_EDIT">
+                                <option id="editOption0">Не выбрано</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger"
+                        onclick="getElementById('editArticleModal').style.display = 'none';" class="cancelbtn">Отменить</button>
+                    <button type="button" class="btn btn-success" id="btnEditArticle" onclick="editArticle();">Сохранить</button>
                 </div>
             </div>
         </div>
@@ -59,7 +102,7 @@
             <div class="container-fluid justify-content-start">
                 <h4 class="navbar-brand">Учётные статьи</h4>
                 <button class="btn btn-secondary" id="createArticleButton"
-                    onclick="btnCreateArticle()">Создать статью</button>
+                    onclick="createArticleMenu()">Создать статью</button>
             </div>
         </nav>
         <div class="row text-start">
