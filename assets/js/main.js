@@ -1,5 +1,5 @@
 const url = "https://api.planfact.io/api/v1/operationcategories";
-import apiKey from "../../apiKey.json" assert { type: "json" };
+import apiKey from "../../apiKey.json" assert { type: "json" }; // { "apiKey": "your_api_key" } in apiKey.json file
 
 const headers = {
     "Content-Type": "application/json",
@@ -22,76 +22,13 @@ let categoryTypes = new Map([
     [4432209, "Capital"]
 ]);
 
-/* JSON ARTICLES */
-
-async function getArticlesJSON() { // Получение всех статей
+async function fetchJSON(url, method, data = null) { // Отправляем на url запрос метода method и тело запроса (если имеется)
     let response = await fetch(url, {
-        method: 'GET',
-        headers: headers
-    });
-    if (response.ok) {
-        let json = await response.json();
-        console.log(json);
-        return json.data.items;
-    } else {
-        alert("Ошибка HTTP: " + response.status);
-        return null;
-    }
-}
-
-async function getArticleJSON(id) { // Получение одной статьи по id
-    let response = await fetch(url + '/' + id, {
-        method: 'GET',
-        headers: headers
-    });
-    if (response.ok) {
-        let json = await response.json();
-        return json;
-    } else {
-        alert("Ошибка HTTP: " + response.status);
-        return null;
-    }
-}
-
-async function postArticleJSON(title, operationCategoryType, parentOperationCategoryId, activityType = "Operating") { // Добавление новой статьи
-    let data = { "title": title, "operationCategoryType": operationCategoryType, "parentOperationCategoryId": parentOperationCategoryId, "activityType": activityType };
-    let response = await fetch(url, {
-        method: 'POST',
+        method: method,
         headers: headers,
-        body: JSON.stringify(data)
+        body: data && JSON.stringify(data)
     });
-    if (response.ok) {
-        let json = await response.json();
-        console.log(json);
-        return json;
-    } else {
-        alert("Ошибка HTTP: " + response.status);
-        return null;
-    }
-}
 
-async function putArticleJSON(id, title, operationCategoryType, parentOperationCategoryId, activityType = "Operating") { // Изменение существующей статьи
-    let data = { "title": title, "operationCategoryType": operationCategoryType, "parentOperationCategoryId": parentOperationCategoryId, "activityType": activityType };
-    let response = await fetch(url + '/' + id, {
-        method: 'PUT',
-        headers: headers,
-        body: JSON.stringify(data)
-    });
-    if (response.ok) {
-        let json = await response.json();
-        console.log(json);
-        return json;
-    } else {
-        alert("Ошибка HTTP: " + response.status);
-        return null;
-    }
-}
-
-async function deleteArticleJSON(id) { // Удаление статьи по id
-    let response = await fetch(url + '/' + id, {
-        method: 'DELETE',
-        headers: headers
-    });
     if (response.ok) {
         let json = await response.json();
         console.log(json);
@@ -105,8 +42,9 @@ async function deleteArticleJSON(id) { // Удаление статьи по id
 /* GET ARTICLES */
 
 async function reloadArticles(parentId) { // Выводим на экран статьи, принадлежащие текущему типу
-    accountingArticles = await getArticlesJSON();
-    if (accountingArticles != null) {
+    let json = await fetchJSON(url, 'GET');
+    if (json != null) {
+        accountingArticles = json.data.items;
         operationChilds.innerHTML = "";
         makeActiveCategory(parentId);
         makeArticlesTree(parentId, accountingArticles);
@@ -143,8 +81,9 @@ function makeArticlesTree(parentId, articles, nesting = 0, parentNode = operatio
 /* CREATE ARTICLE */
 
 async function reloadCreateSelect(parentId) { // Сетапим форму создания статьи
-    accountingArticles = await getArticlesJSON();
-    if (accountingArticles != null) {
+    let json = await fetchJSON(url, 'GET');
+    if (json != null) {
+        accountingArticles = json.data.items;
         while (selectArticleCategory_CREATE.options.length > 1) selectArticleCategory_CREATE.remove(1); // Удаляем все пункты кроме первого
         makeActiveCreateArticle(parentId);
         makeSelectCreateArticleCategory(parentId, accountingArticles);
@@ -164,9 +103,9 @@ function makeSelectCreateArticleCategory(parentId, articles, nesting = 0) { // �
             let newOption = document.createElement('option');
             let html = '';
             for (let i = 0; i < nesting; i++) {
-                html += "-";
+                html += "&#9679;";
             }
-            html = article.title;
+            html += article.title;
             newOption.innerHTML = html;
             newOption.id = "createOption" + article.operationCategoryId;
             selectArticleCategory_CREATE.appendChild(newOption);
@@ -183,23 +122,27 @@ async function createArticle() { // Создание статьи
     }
 
     let categoryId = parseInt(activeCreateArticle.id.substring("createArticle".length));
-    let categoryType = categoryTypes.get(categoryId);
-    if (categoryType === undefined) {
+    let operationCategoryType = categoryTypes.get(categoryId);
+    if (operationCategoryType === undefined) {
         alert('Некорректный тип статьи!');
         return;
     }
 
-    let parentId = parseInt((selectArticleCategory_CREATE.options[selectArticleCategory_CREATE.selectedIndex].id).substring("createOption".length));
-    if (parentId == 0) parentId = categoryId;
+    let parentOperationCategoryId = parseInt((selectArticleCategory_CREATE.options[selectArticleCategory_CREATE.selectedIndex].id).substring("createOption".length));
+    if (parentOperationCategoryId == 0) parentOperationCategoryId = categoryId;
 
-    let answer = await postArticleJSON(title, categoryType, parentId);
-    if (answer != null) {
-        if (answer.isSuccess) {
+    let activityType = "Operating"; // ???
+
+    let data = { "title": title, "operationCategoryType": operationCategoryType, "parentOperationCategoryId": parentOperationCategoryId, "activityType": activityType };
+    let json = await fetchJSON(url, 'POST', data);
+    console.log(json);
+    if (json != null) {
+        if (json.isSuccess) {
             alert("Статья успешно добавлена!");
             window.location.reload();
         }
         else {
-            alert("Ошибка при добавлении статьи: " + answer.errorMessage);
+            alert("Ошибка при добавлении статьи: " + json.errorMessage);
             return;
         }
     }
@@ -208,8 +151,9 @@ async function createArticle() { // Создание статьи
 // EDIT ARTICLE
 
 async function reloadEditSelect(parentId) { // Сетапим форму редактирования статьи
-    accountingArticles = await getArticlesJSON();
-    if (accountingArticles != null) {
+    let json = await fetchJSON(url, 'GET');
+    if (json != null) {
+        accountingArticles = json.data.items;
         while (selectArticleCategory_EDIT.options.length > 1) selectArticleCategory_EDIT.remove(1); // Удаляем все пункты кроме первого
         makeActiveEditArticle(parentId);
         makeSelectEditArticleCategory(parentId, accountingArticles);
@@ -229,9 +173,9 @@ function makeSelectEditArticleCategory(parentId, articles, nesting = 0) { // С�
             let newOption = document.createElement('option');
             let html = '';
             for (let i = 0; i < nesting; i++) {
-                html += "-";
+                html += "&#9679;";
             }
-            html = article.title;
+            html += article.title;
             newOption.innerHTML = html;
             newOption.id = "editOption" + article.operationCategoryId;
             selectArticleCategory_EDIT.appendChild(newOption);
@@ -240,7 +184,7 @@ function makeSelectEditArticleCategory(parentId, articles, nesting = 0) { // С�
     }
 }
 
-async function editArticle(articleId) { // Изменяем статью
+async function editArticle(id) { // Изменяем статью
     let title = document.getElementById('selectArticleTitle_EDIT').value;
     if (title == '') {
         alert('Укажите название статьи!');
@@ -248,23 +192,26 @@ async function editArticle(articleId) { // Изменяем статью
     }
 
     let categoryId = parseInt(activeEditArticle.id.substring("editArticle".length));
-    let categoryType = categoryTypes.get(categoryId);
-    if (categoryType === undefined) {
+    let operationCategoryType = categoryTypes.get(categoryId);
+    if (operationCategoryType === undefined) {
         alert('Некорректный тип статьи!');
         return;
     }
 
-    let parentId = parseInt((selectArticleCategory_EDIT.options[selectArticleCategory_EDIT.selectedIndex].id).substring("editOption".length));
-    if (parentId == 0) parentId = categoryId;
+    let parentOperationCategoryId = parseInt((selectArticleCategory_EDIT.options[selectArticleCategory_EDIT.selectedIndex].id).substring("editOption".length));
+    if (parentOperationCategoryId == 0) parentOperationCategoryId = categoryId;
 
-    let answer = await putArticleJSON(articleId, title, categoryType, parentId);
-    if (answer != null) {
-        if (answer.isSuccess) {
+    let activityType = "Operating"; // ???
+
+    let data = { "title": title, "operationCategoryType": operationCategoryType, "parentOperationCategoryId": parentOperationCategoryId, "activityType": activityType };
+    let json = await fetchJSON(url + '/' + id, 'PUT', data);
+    if (json != null) {
+        if (json.isSuccess) {
             alert("Статья успешно отредактирована!");
             window.location.reload();
         }
         else {
-            alert("Ошибка при редактировании статьи: " + answer.errorMessage);
+            alert("Ошибка при редактировании статьи: " + json.errorMessage);
             return;
         }
     }
@@ -275,14 +222,14 @@ async function editArticle(articleId) { // Изменяем статью
 async function deleteArticle(id) { // Удаляем статью
     let isConfirm = confirm("Вы уверены?");
     if (isConfirm) {
-        let answer = await deleteArticleJSON(id);
-        if (answer != null) {
-            if (answer.isSuccess) {
+        let json = await fetchJSON(url + '/' + id, 'DELETE');
+        if (json != null) {
+            if (json.isSuccess) {
                 alert("Статья успешно удалена!");
                 window.location.reload();
             }
             else {
-                alert("Ошибка при удалении статьи: " + answer.errorMessage);
+                alert("Ошибка при удалении статьи: " + json.errorMessage);
                 return;
             }
         }
@@ -297,19 +244,20 @@ async function createArticleMenu() { // Открытие формы создан
     document.getElementById('createArticleModal').style.display = 'flex';
 }
 
-async function editArticleMenu(articleId) { // Открытие формы редактирования статьи
-    let article = await getArticleJSON(articleId); // Получаем редактируемую статью
-    if (article != null) {
-        if (!article.isSuccess) {
+async function editArticleMenu(id) { // Открытие формы редактирования статьи
+    let json = await fetchJSON(url + '/' + id, 'GET'); // Получаем редактируемую статью
+    if (json != null) {
+        if (!json.isSuccess) {
             alert("Такой статьи не существует!");
             return;
         }
     }
 
-    document.getElementById('selectArticleTitle_EDIT').value = article.data.title; // В поле ввода пишем название изменяемой статьи
+    let article = json.data;
+    document.getElementById('selectArticleTitle_EDIT').value = article.title; // В поле ввода пишем название изменяемой статьи
 
-    let category = article.data.operationCategoryType;
-    let parent = "editOption" + article.data.parentOperationCategoryId;
+    let category = article.operationCategoryType;
+    let parent = "editOption" + article.parentOperationCategoryId;
     let categoryId;
     for (let key of categoryTypes.keys()) { // Находим id одного из 5 типов, к которому принадлежит статья
         let value = categoryTypes.get(key);
@@ -325,7 +273,7 @@ async function editArticleMenu(articleId) { // Открытие формы ре�
         }
     }
 
-    document.getElementById('btnEditArticle').onclick = function () { editArticle(articleId); }; // Назначаем обработчик изменения статьи на кнопку "Сохранить"
+    document.getElementById('btnEditArticle').onclick = function () { editArticle(id); }; // Назначаем обработчик изменения статьи на кнопку "Сохранить"
     document.getElementById('editArticleModal').style.display = 'flex';
 }
 
