@@ -131,11 +131,18 @@ async function createArticle() { // Создание статьи
     let parentOperationCategoryId = parseInt((selectArticleCategory_CREATE.options[selectArticleCategory_CREATE.selectedIndex].id).substring("createOption".length));
     if (parentOperationCategoryId == 0) parentOperationCategoryId = categoryId;
 
-    let activityType = "Operating"; // ???
+    let parentJson = await fetchJSON(url + '/' + parentOperationCategoryId, 'GET'); // Получаем родительскую статью
+    if (parentJson != null) {
+        if (!parentJson.isSuccess) {
+            alert("Не удалось найти родительскую статью!");
+            return;
+        }
+    }
+
+    let activityType = parentJson.data.activityType;
 
     let data = { "title": title, "operationCategoryType": operationCategoryType, "parentOperationCategoryId": parentOperationCategoryId, "activityType": activityType };
     let json = await fetchJSON(url, 'POST', data);
-    console.log(json);
     if (json != null) {
         if (json.isSuccess) {
             alert("Статья успешно добавлена!");
@@ -201,7 +208,15 @@ async function editArticle(id) { // Изменяем статью
     let parentOperationCategoryId = parseInt((selectArticleCategory_EDIT.options[selectArticleCategory_EDIT.selectedIndex].id).substring("editOption".length));
     if (parentOperationCategoryId == 0) parentOperationCategoryId = categoryId;
 
-    let activityType = "Operating"; // ???
+    let parentJson = await fetchJSON(url + '/' + parentOperationCategoryId, 'GET'); // Получаем родительскую статью
+    if (parentJson != null) {
+        if (!parentJson.isSuccess) {
+            alert("Не удалось найти родительскую статью!");
+            return;
+        }
+    }
+
+    let activityType = parentJson.data.activityType;
 
     let data = { "title": title, "operationCategoryType": operationCategoryType, "parentOperationCategoryId": parentOperationCategoryId, "activityType": activityType };
     let json = await fetchJSON(url + '/' + id, 'PUT', data);
